@@ -2,14 +2,7 @@
 title: 'What We Know Before They Go: Using Motion Data to Predict NFL Plays'
 author: "Liam Smith"
 date: "2025-01-06"
-output: 
-  html_document:
-    toc: true
-    toc_float: true
-    self_contained: yes
-    mode: selfcontained
-    theme: darkly
-    highlight-style: breezedark
+output: github_document
 ---
 
 ```{r setup, include=FALSE}
