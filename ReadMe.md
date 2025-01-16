@@ -117,7 +117,7 @@ could be given to defensive playmakers to enable them to make
 assumptions about the type of play the offense was going to run. This
 was why the SHAP importance graphs were the most important output of my
 code. <br> First, for the Run vs. Pass:
-<img src="shap_rp_move.jpeg" width="100%" />
+<img src="https://github.com/therealsmithy/nfl-play-predictor/blob/main/visualizations/shap_rp_move.jpeg" width="100%" />
 
 - Shotgun and Empty sets heavily influence the play call being a pass.
   This is due to the Running Back not being able to gain momentum with
@@ -131,8 +131,10 @@ code. <br> First, for the Run vs. Pass:
 - The further in to the game it is, the more likely an offense is to
   call a run. This is likely due to leading teams calling runs in order
   to run the clock. So this may not be as situationally applicable as
-  the other rules. <br> Next, for EPA:
-  <img src="shap_epa_move.jpeg" width="100%" />
+  the other rules. <br>
+
+Next, for EPA:
+  <img src="https://github.com/therealsmithy/nfl-play-predictor/blob/main/visualizations/shap_epa_move.jpeg" width="100%" />
 
 - Higher values of quarter and down are more likely to result in a play
   with lower EPA. Teams may have erratic play calling with less
