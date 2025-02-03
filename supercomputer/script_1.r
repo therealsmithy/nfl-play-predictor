@@ -5,21 +5,7 @@ library(reshape2)
 # Read in data
 plays <- fread('plays.csv')
 player_plays <- fread('player_play.csv')
-tracking_1 <- fread('tracking_week_1.csv')
-tracking_2 <- fread('tracking_week_2.csv')
-tracking_3 <- fread('tracking_week_3.csv')
-tracking_4 <- fread('tracking_week_4.csv')
-tracking_5 <- fread('tracking_week_5.csv')
-tracking_6 <- fread('tracking_week_6.csv')
-tracking_7 <- fread('tracking_week_7.csv')
-tracking_8 <- fread('tracking_week_8.csv')
-tracking_9 <- fread('tracking_week_9.csv')
-
-tracking <- rbind.data.frame(tracking_1, tracking_2, 
-                             tracking_3, tracking_4,
-                             tracking_5, tracking_6, 
-                             tracking_7, tracking_8, 
-                             tracking_9)
+tracking <- fread('tracking_week_1.csv')
 
 # Will use later to add player names to results to make it understandable
 players_full <- fread('players.csv')
@@ -28,52 +14,43 @@ players_full <- fread('players.csv')
 play_id <- tracking$playId[1]
 game_id <- tracking$gameId[1]
 
-j <- 329
+j <- 9
 i <- 1
 res_db <- as.data.frame(matrix(NA, nrow = nrow(plays), ncol = 132))
 res_list <- vector(mode = "list", length = nrow(plays))
 # Pull motion data
 for(j in 1:nrow(plays)){
   if(plays$gameId[j] %in% tracking$gameId){
-    
+    print(j)
     play_id <- plays$playId[j]
     game_id <- plays$gameId[j]
-    print(j)
+    
     players <- player_plays[which(playId == play_id & gameId == game_id),]
     
     off_players <- players[which(players$team == plays$possessionTeam[j]),]
     def_players <- players[which(players$team != plays$possessionTeam[j]),]
     
     start_pos_off <- start_pos_def <- snap_pos_off <- snap_pos_def <- as.data.frame(matrix(NA, nrow = 11, ncol = 3))
+    
+    
     track_use <- tracking[which(playId == play_id & gameId == game_id),]
     if("line_set" %in% track_use$event){
       for(i in 1:11){
-        if(nrow(off_players) >= i){
-          track_1 <- tracking[which(playId == play_id &
-                                      gameId == game_id &
-                                      nflId == off_players$nflId[i]),]
-          
-          start_pos_off[i, ] <- track_1[which(track_1$event  == "line_set"), c("nflId", "x", "y") ]
-          snap_pos_off[i, ] <- track_1[which(track_1$event  %in% c("ball_snap", "snap_direct", "autoevent_ballsnap")), c("nflId", "x", "y") ]
-          
-        } else {
-          start_pos_off[i, ] <- NA
-          snap_pos_off[i, ] <- NA
-        }
+        track_1 <- tracking[which(playId == play_id & 
+                                    gameId == game_id & 
+                                    nflId == off_players$nflId[i]),]
         
-        track_pre <- tracking[which(track_1$event  == "line_set"):which(track_1$event %in% c("ball_snap", "snap_direct", "autoevent_ballsnap")), ]
-        if(nrow(def_players) >= i){
-          track_2 <- tracking[which(playId == play_id &
-                                      gameId == game_id &
-                                      nflId == def_players$nflId[i]),]
-          
-          start_pos_def[i, ] <- track_2[which(track_2$event  == "line_set"), c("nflId", "x", "y") ]
-          snap_pos_def[i, ] <- track_2[which(track_2$event  %in% c("ball_snap", "snap_direct", "autoevent_ballsnap")), c("nflId", "x", "y") ]
-        } else {
-          start_pos_def[i, ] <- NA
-          snap_pos_def[i, ] <- NA
-        }
+        start_pos_off[i, ] <- track_1[which(track_1$event  == "line_set"), c("nflId", "x", "y") ]
+        snap_pos_off[i, ] <- track_1[which(track_1$event  %in% c("ball_snap", "snap_direct")), c("nflId", "x", "y") ]
         
+        track_pre <- tracking[which(track_1$event  == "line_set"):which(track_1$event %in% c("ball_snap", "snap_direct")), ]
+        
+        track_2 <- tracking[which(playId == play_id & 
+                                    gameId == game_id & 
+                                    nflId == def_players$nflId[i]),]
+        
+        start_pos_def[i, ] <- track_2[which(track_2$event  == "line_set"), c("nflId", "x", "y") ]
+        snap_pos_def[i, ] <- track_2[which(track_2$event  %in% c("ball_snap", "snap_direct")), c("nflId", "x", "y") ]
       }
       
       names(start_pos_off) <- c("nflId_start_off", "x_start_off", "y_start_off")
@@ -81,9 +58,9 @@ for(j in 1:nrow(plays)){
       names(snap_pos_def) <- c("nflId_snap_def", "x_snap_def", "y_snap_def")
       names(start_pos_def) <- c("nflId_start_def", "x_start_def", "y_start_def")
       
-      res_db[j, ] <- c(unlist(start_pos_off), unlist(snap_pos_off), unlist(start_pos_def), unlist(snap_pos_def))
+      res_db[i, ] <- c(unlist(start_pos_off), unlist(snap_pos_off), unlist(start_pos_def), unlist(snap_pos_def))
       
-      the_play <- res_db[j, ]
+      the_play <- res_db[i, ]
       the_play <- as.data.frame(t(the_play))
       df1 <- the_play[1:11, ]
       df2 <- the_play[12:22, ]
@@ -104,17 +81,17 @@ for(j in 1:nrow(plays)){
       poss <- c(rep('off', 11), rep('def', 11))
       the_play_df <- cbind(poss, the_play_df)
       the_play_df <- data.frame(the_play_df)
-      the_play_df <- the_play_df %>%
+      the_play_df <- the_play_df %>% 
         mutate_at(c('nflId', 'x_start', 'y_start', 'nflId_snap',
-                    'x_snap', 'y_snap'),
+                    'x_snap', 'y_snap'), 
                   as.numeric)
       
-      
+      res_list[[i]] <- the_play_df
     }
-    res_list[[j]] <- the_play_df
-  }
-  save(res_db, res_list, file = "results_2_part_way.rda")
+    }
+    
+    
+
 }
 
-
-save(res_db, res_list, file = "results_2.rda")
+save(res_db, res_list, file = "results_1.rda")
