@@ -1,0 +1,6 @@
+#!/bin/bash
+#$ -M lsmith37@nd.edu
+#$ -m abe
+#$ -pe smp 8
+module load R
+R CMD BATCH script_3b.r script_3b.out\
