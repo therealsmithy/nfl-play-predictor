@@ -1,11 +1,12 @@
 library(data.table)
-load("G:/My Drive/MSBA/ML/Final Project/nfl-play-predictor/data/results_2.rda")
-plays <- fread('G:/My Drive/MSBA/ML/Final Project/nfl-play-predictor/data/plays.csv')
-players <- fread('G:/My Drive/MSBA/ML/Final Project/nfl-play-predictor/data/players.csv')
+library(dplyr)
+load("G:/My Drive/MSBA/Sem1/ML/Final Project/nfl-play-predictor/data/results_3.rda")
+plays <- fread('G:/My Drive/MSBA/Sem1/ML/Final Project/nfl-play-predictor/data/plays.csv')
+players <- fread('G:/My Drive/MSBA/Sem1/ML/Final Project/nfl-play-predictor/data/players.csv')
 
 # Pull out the data from the results list
 name_vec <- colnames(res_db)
-res_db <- as.data.frame(matrix(NA, nrow = length(res_list), ncol = 132))
+res_db <- as.data.frame(matrix(NA, nrow = length(res_list), ncol = 220))
 
 for(i in 1:length(res_list)){
   if(!is.null(res_list[[i]])){
@@ -15,12 +16,20 @@ for(i in 1:length(res_list)){
                         unlist(res_list[[i]][which(res_list[[i]][,1] == "off"),5]),
                         unlist(res_list[[i]][which(res_list[[i]][,1] == "off"),6]),
                         unlist(res_list[[i]][which(res_list[[i]][,1] == "off"),7]),
+                        unlist(res_list[[i]][which(res_list[[i]][,1] == "off"),8]),
+                        unlist(res_list[[i]][which(res_list[[i]][,1] == "off"),9]),
+                        unlist(res_list[[i]][which(res_list[[i]][,1] == "off"),10]),
+                        unlist(res_list[[i]][which(res_list[[i]][,1] == "off"),11]),
                         unlist(res_list[[i]][which(res_list[[i]][,1] == "def"),2]),
                         unlist(res_list[[i]][which(res_list[[i]][,1] == "def"),3]),
                         unlist(res_list[[i]][which(res_list[[i]][,1] == "def"),4]),
                         unlist(res_list[[i]][which(res_list[[i]][,1] == "def"),5]),
                         unlist(res_list[[i]][which(res_list[[i]][,1] == "def"),6]),
-                        unlist(res_list[[i]][which(res_list[[i]][,1] == "def"),7]))
+                        unlist(res_list[[i]][which(res_list[[i]][,1] == "def"),7]),
+                        unlist(res_list[[i]][which(res_list[[i]][,1] == "def"),8]),
+                        unlist(res_list[[i]][which(res_list[[i]][,1] == "def"),9]),
+                        unlist(res_list[[i]][which(res_list[[i]][,1] == "def"),10]),
+                        unlist(res_list[[i]][which(res_list[[i]][,1] == "def"),11]))
   }
 }
 
@@ -39,6 +48,12 @@ for (i in 1:num_players) {
   new_colnames <- c(new_colnames, paste("o_player", i, "lineset_y", sep = "_"))
 }
 for (i in 1:num_players) {
+  new_colnames <- c(new_colnames, paste("o_player", i, "lineset_s", sep = "_"))
+}
+for (i in 1:num_players) {
+  new_colnames <- c(new_colnames, paste("o_player", i, "lineset_a", sep = "_"))
+}
+for (i in 1:num_players) {
   new_colnames <- c(new_colnames, paste("o_player", i, "snap_id", sep = "_"))
 }
 for (i in 1:num_players) {
@@ -46,6 +61,12 @@ for (i in 1:num_players) {
 }
 for (i in 1:num_players) {
   new_colnames <- c(new_colnames, paste("o_player", i, "snap_y", sep = "_"))
+}
+for (i in 1:num_players) {
+  new_colnames <- c(new_colnames, paste("o_player", i, "snap_s", sep = "_"))
+}
+for (i in 1:num_players) {
+  new_colnames <- c(new_colnames, paste("o_player", i, "snap_a", sep = "_"))
 }
 for (i in 1:num_players) {
   new_colnames <- c(new_colnames, paste("d_player", i, "lineset_id", sep = "_"))
@@ -57,6 +78,12 @@ for (i in 1:num_players) {
   new_colnames <- c(new_colnames, paste("d_player", i, "lineset_y", sep = "_"))
 }
 for (i in 1:num_players) {
+  new_colnames <- c(new_colnames, paste("d_player", i, "lineset_s", sep = "_"))
+}
+for (i in 1:num_players) {
+  new_colnames <- c(new_colnames, paste("d_player", i, "lineset_a", sep = "_"))
+}
+for (i in 1:num_players) {
   new_colnames <- c(new_colnames, paste("d_player", i, "snap_id", sep = "_"))
 }
 for (i in 1:num_players) {
@@ -65,22 +92,28 @@ for (i in 1:num_players) {
 for (i in 1:num_players) {
   new_colnames <- c(new_colnames, paste("d_player", i, "snap_y", sep = "_"))
 }
+for (i in 1:num_players) {
+  new_colnames <- c(new_colnames, paste("d_player", i, "snap_s", sep = "_"))
+}
+for (i in 1:num_players) {
+  new_colnames <- c(new_colnames, paste("d_player", i, "snap_a", sep = "_"))
+}
 colnames(res_db) <- new_colnames
 
 model_df <- cbind(plays, res_db)
 
 # Variable Selection
 # Response variable - expectedPointsAdded from plays data
-# 0a. Tracking data that I want to use - a(at snap), s(at snap), dir(at snap) - WILL ADD AT LATER DATE!
+# 0a. Tracking data that I want to use - a(at snap), s(at snap)
 # 0b. Play data that I want to use - quarter, down, offenseFomation, recieverAlignment
 # 1. Euclidian distance between line set and ball snap for each player
-o_dist_moved <- sqrt((model_df[,c(95:105)] - model_df[,c(62:72)])^2 + 
-                       (model_df[,c(106:116)] - model_df[,c(73:83)])^2)
+o_dist_moved <- sqrt((model_df[,c(117:127)] - model_df[,c(62:72)])^2 + 
+                       (model_df[,c(128:138)] - model_df[,c(73:83)])^2)
 names(o_dist_moved) <- paste("o_dist_moved", 1:11, sep = "_")
 model_df <- cbind(model_df, o_dist_moved)
 
-d_dist_moved <- sqrt((model_df[,c(161:171)] - model_df[,c(128:138)])^2 + 
-                       (model_df[,c(172:182)] - model_df[,c(139:149)])^2)
+d_dist_moved <- sqrt((model_df[,c(227:237)] - model_df[,c(172:182)])^2 + 
+                       (model_df[,c(238:248)] - model_df[,c(183:193)])^2)
 names(d_dist_moved) <- paste("d_dist_moved", 1:11, sep = "_")
 model_df <- cbind(model_df, d_dist_moved)
 
@@ -160,8 +193,8 @@ d_positioncolnames <- c()
 for (i in 1:num_players) {
   d_positioncolnames <- c(d_positioncolnames, paste("d_player", i, "position", sep = "_"))
 }
-colnames(model_df)[205:215] <- o_positioncolnames
-colnames(model_df)[216:226] <- d_positioncolnames
+colnames(model_df)[293:303] <- o_positioncolnames
+colnames(model_df)[304:314] <- d_positioncolnames
 
 # Create new variable for run vs pass
 model_df <- model_df %>% 
@@ -173,12 +206,16 @@ model_df <- model_df %>%
   select(playDescription, expectedPointsAdded, run_pass,
          quarter, down, offenseFormation, receiverAlignment, 
          o_dist_moved_1:o_dist_moved_11, d_dist_moved_1:d_dist_moved_11,
+         o_player_1_snap_s:o_player_11_snap_s, d_player_1_snap_s:d_player_11_snap_s,
+         o_player_1_snap_a:o_player_11_snap_a, d_player_1_snap_a:d_player_11_snap_a,
          o_player_1_position:d_player_11_position) %>% 
   mutate_if(is.character, as.factor)
 
 # Dummy Up Positions
 o_move_cols <- c(8:18)
-o_pos_cols <- c(30:40)
+o_s_cols <- c(30:40)
+o_a_cols <- c(52:62)
+o_pos_cols <- c(74:84)
 
 model_df <- as.data.frame(model_df)
 
