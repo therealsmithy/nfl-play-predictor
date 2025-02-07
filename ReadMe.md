@@ -51,7 +51,9 @@ inMotionAtBallSnap and motionSinceLineset are keys to deciphering my
 problem. Finally, there is week-by-week tracking data that will be used
 for visualization to aid my findings. It can be used to animate plays to
 better understand how motion can key a defense in on what the offense
-plans to do. <br> The tracking dataset was used to create the motion
+plans to do. This dataset also tracks the speed and acceleration of each
+player at a frame by frame basis. That data will be used in my model as well.
+<br> The tracking dataset was used to create the motion
 variable. This variable tracks the distance between where the player was
 when the line gets set and where they are when the ball is snapped.
 Distance was calculated as Euclidian distance, which is found using the
@@ -117,51 +119,47 @@ could be given to defensive playmakers to enable them to make
 assumptions about the type of play the offense was going to run. This
 was why the SHAP importance graphs were the most important output of my
 code. <br> First, for the Run vs. Pass:
-<img src="https://github.com/therealsmithy/nfl-play-predictor/blob/main/visualizations/shap_rp_move.jpeg" width="100%" />
+<img src="https://github.com/therealsmithy/nfl-play-predictor/blob/main/visualizations/shap_rp_move_sa.jpeg" width="100%" />
 
 - Shotgun and Empty sets heavily influence the play call being a pass.
   This is due to the Running Back not being able to gain momentum with
   the football before coming in contact with a defender.
 
-- Having more than three receivers on the field means that a pass is
-  most likely coming. This data did not breakdown exactly where the
-  receivers are lined up, but an alignment of 3x1 and 3x2 are likely to
-  be passes compared to 2x1.
+- High values of WR1 and WR2 acceleration are  good indicators that a run play
+  is about to happen. This can be due in part to the End Around play, where 
+  the WR comes in motion and takes the ball from the QB like a RB would. 
 
-- The further in to the game it is, the more likely an offense is to
-  call a run. This is likely due to leading teams calling runs in order
-  to run the clock. So this may not be as situationally applicable as
-  the other rules. <br>
-
-Next, for EPA:
+- High G1 and G2 acceleration are also good indicators that a run play is 
+  about to occur. While a Guard can not be in motion when the ball is snapped,
+  it is possible that the data was off by a few frames. In situations where
+  G acceleration is high, it may be due to a Guard being a lead blocker and pulling
+  to stay in front of the ballcarrier.
+  <br> Next, for EPA:
   <img src="https://github.com/therealsmithy/nfl-play-predictor/blob/main/visualizations/shap_epa_move.jpeg" width="100%" />
 
-- Higher values of quarter and down are more likely to result in a play
-  with lower EPA. Teams may have erratic play calling with less
-  opportunities, or they are running out the clock.
+- High values of T2 speed seem to have a largely negative impact on EPA.
+  One of the reasons for this is Detroit Lions OT Dan Skipper reports
+  as eligible in some situations, and not all of these plays work out.
+  Since he is eligible, he does not need to stand firm and is able to move.
 
-- TE movement can be a mixed bag in terms of play outcome. High values
-  of TE movement end up on either side of the center in the SHAP graph,
-  so stay alert and be ready to make a play when the TE makes
-  significant movement.
+- WR3 movement can be a mixed bag. 3 receivers on the field is a sign
+  that the offense may be looking to throw the ball, and when that third
+  receiver gets into motion it is hit or miss. Look for the offense to 
+  try to make a big play when that third WR moves significantly before the
+  snap.
 
-- WR2 movement is not good for the offense. High values of WR2 movement
-  end up almost strictly on the left half of center, meaning that they
-  are not good for EPA. Offenses give themselves a much better chance
-  when they let their more dynamic WR1 make the movement.
-
-- Offenses lining up in Empty are looking to make a big play. Be ready
-  for a pass that is looking to leave you behind.
+- The highest value of RB movement impacted EPA negatively, but the trend 
+  points to RB movement being a good thing for EPA. This is probably due to 
+  the RB motioning from the backfield to the line of scrimmage. When this 
+  happens, the offense is likely to try to make a big play throwing the ball.
 
 ## Conculsion and Future Work
 
 NFL offenses are designed to trick you. Because of this, NFL defenses
 must be aware of any hints that are given to them by the offense. This
 project was designed to empower these defensive players with a little
-extra knowledge on what offenses are planning to do. With extra time,
-there is a lot that can be done with this project. The easiest thing
-that I would love to incorporate is the speed and acceleration of each
-player at the time that the ball is snap. It would be interesting to
-perform an analysis on plays where a player is actively in motion at the
-time of the snap and what can happen after. I plan to go deeper into
-this problem and clean up my results.
+extra knowledge on what offenses are planning to do. The next step for this project 
+is looking into how the interpretable outputs of these models change if only
+skill position players are included. Another simple addition to this project
+will be pulling out and animating plays that reinforce the points made in the 
+discussion.
