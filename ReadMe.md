@@ -135,7 +135,7 @@ code. <br> First, for the Run vs. Pass:
   G acceleration is high, it may be due to a Guard being a lead blocker and pulling
   to stay in front of the ballcarrier.
   <br> Next, for EPA:
-  <img src="https://github.com/therealsmithy/nfl-play-predictor/blob/main/visualizations/shap_epa_move.jpeg" width="100%" />
+  <img src="https://github.com/therealsmithy/nfl-play-predictor/blob/main/visualizations/shap_epa_move_sa.jpeg" width="100%" />
 
 - High values of T2 speed seem to have a largely negative impact on EPA.
   One of the reasons for this is Detroit Lions OT Dan Skipper reports
