@@ -1221,6 +1221,8 @@ shap_long <- shap.prep(shap = shap_result,
 shap_rp_move_sa <- plot.shap.summary(data_long = shap_long)
 ggsave(shap_rp_move_sa, file = "G:/My Drive/MSBA/Sem1/ML/Final Project/nfl-play-predictor/shap_rp_move_sa.jpeg", dpi = 600)
 
+
+
 ############################################ EPA ANALYSIS ############################################
 # Trust The Process ... These ones without movement may not do great
 # RANDOM FOREST - NO MOVEMENT
@@ -1816,3 +1818,281 @@ shap_long <- shap.prep(shap = shap_result,
                        top_n = 10)                       
 shap_epa_move <- plot.shap.summary(data_long = shap_long)
 ggsave(shap_epa_move, file = "G:/My Drive/MSBA/ML/Final Project/nfl-play-predictor/shap_epa_move.jpeg", dpi = 600)
+
+# XGBOOST - WITH MOVEMENT AND S/A ADDED
+# Since XGBoost has been the best before, that will be the only model that I run here
+# Set up dummies
+train_data_xgb <- train_data_epa_move %>% 
+                    dummy_cols(select_columns = c("offenseFormation", "receiverAlignment"))
+test_data_xgb <- test_data %>%
+                    dummy_cols(select_columns = c("offenseFormation", "receiverAlignment"))
+# Set up DMatrix
+dtrain_xgb_epa_move_sa <- xgb.DMatrix(data = as.matrix(train_data_xgb[, c(2:3, 6:97)]),
+                                      label = train_data_xgb$expectedPointsAdded)
+dtest_xgb_epa_move_sa <- xgb.DMatrix(data = as.matrix(test_data_xgb[, c(4:5, 8:99)]),
+                                     label = test_data_xgb$expectedPointsAdded)
+# Train and Predict
+xgb13 <- xgboost(data = dtrain_xgb_epa_move_sa,
+                 nrounds = 100,
+                 verbose = 1,
+                 print_every_n = 20,
+                 objective = 'reg:squarederror',
+                 eval_metric = 'rmse')
+xgb13_preds <- predict(xgb13, dtest_xgb_epa_move_sa)
+t19 <- accuracy(xgb13_preds, test_data_xgb$expectedPointsAdded)
+t19
+# Some Tuning
+bst <- xgboost(data = dtrain_xgb_epa_move_sa,
+               nfold = 5,
+               eta = 0.1,
+               nrounds = 3000,
+               early_stopping_rounds = 50,
+               verbose = 1,
+               nthread = 1,
+               print_every_n = 20,
+               objective = 'reg:squarederror',
+               eval_metric = 'rmse')
+# Goes for the whole time
+# Tuning max depth and min child weight
+cv_params <- expand.grid(max_depth_vals, min_child_weight_vals)
+names(cv_params) <- c('max_depth', 'min_child_weight')
+rmse_vec <- rep(NA, nrow(cv_params))
+for(i in 1:nrow(cv_params)){
+  print(i)
+  set.seed(102701)
+  bst_tune <- xgb.cv(data = dtrain_xgb_epa_move_sa,
+                   nfold = 5,
+                   eta = 0.1,
+                   nrounds = 3000,
+                   early_stopping_rounds = 50,
+                   verbose = 1,
+                   nthread = 1,
+                   print_every_n = 20,
+                   objective = 'reg:squarederror',
+                   eval_metric = 'rmse',
+                   max_depth = cv_params$max_depth[i],
+                   min_child_weight = cv_params$min_child_weight[i])
+  rmse_vec[i] <- min(bst_tune$evaluation_log$test_rmse_mean[bst_tune$best_ntreelimit])
+}
+res_db <- cbind.data.frame(cv_params, rmse_vec)
+names(res_db)[3] <- 'rmse'
+res_db$max_depth <- as.factor(res_db$max_depth)
+res_db$min_child_weight <- as.factor(res_db$min_child_weight)
+# RMSE Heatmap
+ggplot(res_db, aes(x = max_depth, y = min_child_weight, fill = rmse)) +
+  geom_tile() +
+  scale_fill_gradient2(low = 'blue', mid = 'white', high = 'red',
+                       midpoint = mean(res_db$rmse), space = 'Lab',
+                       na.value = 'gray', guide = 'colorbar', aesthetics = 'fill') +
+  labs(title = 'RMSE by Max Depth and Min Child Weight',
+       x = 'Max Depth',
+       y = 'Min Child Weight',
+       fill = 'RMSE') +
+  theme_minimal()
+# Max depth of 3 and min child of 1 is best
+# Tuning gamma
+rmse_vec <- rep(NA, length(gamma_vals))
+for(i in 1:length(gamma_vals)){
+  print(i)
+  set.seed(102701)
+  bst_tune <- xgb.cv(data = dtrain_xgb_epa_move_sa,
+                   nfold = 5,
+                   eta = 0.1,
+                   nrounds = 3000,
+                   early_stopping_rounds = 50,
+                   verbose = 1,
+                   nthread = 1,
+                   print_every_n = 20,
+                   objective = 'reg:squarederror',
+                   eval_metric = 'rmse',
+                   max_depth = 3,
+                   min_child_weight = 1,
+                   gamma = gamma_vals[i])
+  rmse_vec[i] <- min(bst_tune$evaluation_log$test_rmse_mean[bst_tune$best_ntreelimit])
+}
+cbind.data.frame(gamma_vals, rmse_vec)
+# Not much different, let's go with 0.10
+# Now retune the initial model with the things we know now
+xgb14 <- xgboost(data = dtrain_xgb_epa_move_sa,
+                 nfold = 5,
+                 eta = 0.1,
+                 nrounds = 3000,
+                 early_stopping_rounds = 50,
+                 verbose = 1,
+                 nthread = 1,
+                 print_every_n = 20,
+                 objective = 'reg:squarederror',
+                 eval_metric = 'rmse',
+                 max_depth = 3,
+                 min_child_weight = 1,
+                 gamma = 0.10)
+# Just keeps going
+# Tuning subsample and colsample_by_tree
+cv_params <- expand.grid(subsample_vals, colsample_bytree_vals)
+names(cv_params) <- c('subsample', 'colsample_bytree')
+rmse_vec <- rep(NA, nrow(cv_params))
+for(i in 1:nrow(cv_params)){
+  print(i)
+  set.seed(102701)
+  bst_tune <- xgb.cv(data = dtrain_xgb_epa_move_sa,
+                   nfold = 5,
+                   eta = 0.1,
+                   nrounds = 3000,
+                   early_stopping_rounds = 50,
+                   verbose = 1,
+                   nthread = 1,
+                   print_every_n = 20,
+                   objective = 'reg:squarederror',
+                   eval_metric = 'rmse',
+                   max_depth = 3,
+                   min_child_weight = 1,
+                   gamma = 0.10,
+                   subsample = cv_params$subsample[i],
+                   colsample_bytree = cv_params$colsample_bytree[i])
+  rmse_vec[i] <- min(bst_tune$evaluation_log$test_rmse_mean[bst_tune$best_ntreelimit])
+}
+res_db <- cbind.data.frame(cv_params, rmse_vec)
+names(res_db)[3] <- 'rmse'
+res_db$subsample <- as.factor(res_db$subsample)
+res_db$colsample_bytree <- as.factor(res_db$colsample_bytree)
+# RMSE Heatmap
+ggplot(res_db, aes(x = subsample, y = colsample_bytree, fill = rmse)) +
+  geom_tile() +
+  scale_fill_gradient2(low = 'blue', mid = 'white', high = 'red',
+                       midpoint = mean(res_db$rmse), space = 'Lab',
+                       na.value = 'gray', guide = 'colorbar', aesthetics = 'fill') +
+  labs(title = 'RMSE by Subsample and Colsample by Tree',
+       x = 'Subsample',
+       y = 'Colsample by Tree',
+       fill = 'RMSE') +
+  theme_minimal()
+# Subsample of 1 and colsample of 0.9
+# Now just to check out different eta values
+bst_mod_1 <- xgb.cv(data = dtrain_xgb_epa_move_sa,
+                    nfold = 5,
+                    eta = 0.1,
+                    nrounds = 3000,
+                    early_stopping_rounds = 50,
+                    verbose = 1,
+                    nthread = 1,
+                    print_every_n = 20,
+                    objective = 'reg:squarederror',
+                    eval_metric = 'rmse',
+                    max_depth = 3,
+                    min_child_weight = 1,
+                    gamma = 0.10,
+                    subsample = 1,
+                    colsample_bytree = 0.9)
+bst_mod_2 <- xgb.cv(data = dtrain_xgb_epa_move_sa,
+                    nfold = 5,
+                    eta = 0.3,
+                    nrounds = 3000,
+                    early_stopping_rounds = 50,
+                    verbose = 1,
+                    nthread = 1,
+                    print_every_n = 20,
+                    objective = 'reg:squarederror',
+                    eval_metric = 'rmse',
+                    max_depth = 3,
+                    min_child_weight = 1,
+                    gamma = 0.10,
+                    subsample = 1,
+                    colsample_bytree = 0.9)
+bst_mod_3 <- xgb.cv(data = dtrain_xgb_epa_move_sa,
+                    nfold = 5,
+                    eta = 0.05,
+                    nrounds = 3000,
+                    early_stopping_rounds = 50,
+                    verbose = 1,
+                    nthread = 1,
+                    print_every_n = 20,
+                    objective = 'reg:squarederror',
+                    eval_metric = 'rmse',
+                    max_depth = 3,
+                    min_child_weight = 1,
+                    gamma = 0.10,
+                    subsample = 1,
+                    colsample_bytree = 0.9)
+bst_mod_4 <- xgb.cv(data = dtrain_xgb_epa_move_sa,
+                    nfold = 5,
+                    eta = 0.01,
+                    nrounds = 3000,
+                    early_stopping_rounds = 50,
+                    verbose = 1,
+                    nthread = 1,
+                    print_every_n = 20,
+                    objective = 'reg:squarederror',
+                    eval_metric = 'rmse',
+                    max_depth = 3,
+                    min_child_weight = 1,
+                    gamma = 0.10,
+                    subsample = 1,
+                    colsample_bytree = 0.9)
+bst_mod_5 <- xgb.cv(data = dtrain_xgb_epa_move_sa,
+                    nfold = 5,
+                    eta = 0.005,
+                    nrounds = 3000,
+                    early_stopping_rounds = 50,
+                    verbose = 1,
+                    nthread = 1,
+                    print_every_n = 20,
+                    objective = 'reg:squarederror',
+                    eval_metric = 'rmse',
+                    max_depth = 3,
+                    min_child_weight = 1,
+                    gamma = 0.10,
+                    subsample = 1,
+                    colsample_bytree = 0.9)
+# Now to plot and see
+pd1 <- cbind.data.frame(bst_mod_1$evaluation_log[, c('iter', 'test_rmse_mean')],
+                        rep('0.3', nrow(bst_mod_1$evaluation_log)))
+names(pd1)[3] <- 'eta'
+pd2 <- cbind.data.frame(bst_mod_2$evaluation_log[, c('iter', 'test_rmse_mean')],
+                        rep('0.1', nrow(bst_mod_2$evaluation_log)))
+names(pd2)[3] <- 'eta'
+pd3 <- cbind.data.frame(bst_mod_3$evaluation_log[, c('iter', 'test_rmse_mean')],
+                        rep('0.05', nrow(bst_mod_3$evaluation_log)))
+names(pd3)[3] <- 'eta'
+pd4 <- cbind.data.frame(bst_mod_4$evaluation_log[, c('iter', 'test_rmse_mean')],
+                        rep('0.01', nrow(bst_mod_4$evaluation_log)))
+names(pd4)[3] <- 'eta'
+pd5 <- cbind.data.frame(bst_mod_5$evaluation_log[, c('iter', 'test_rmse_mean')],
+                        rep('0.005', nrow(bst_mod_5$evaluation_log)))
+names(pd5)[3] <- 'eta'
+plot_dat <- rbind(pd1, pd2, pd3, pd4, pd5)
+ggplot(plot_dat, aes(x = iter, y = test_rmse_mean, color = eta)) +
+  geom_smooth(alpha = 0.5) +
+  labs(title = 'RMSE by Iteration and Eta',
+       x = 'Iteration',
+       y = 'RMSE',
+       color = 'Eta') +
+  theme_minimal()
+# Best is .05
+xgb15 <- xgboost(data = dtrain_xgb_epa_move_sa,
+                 nfold = 5,
+                 eta = 0.05,
+                 nrounds = 3000,
+                 early_stopping_rounds = 50,
+                 verbose = 1,
+                 nthread = 1,
+                 print_every_n = 20,
+                 objective = 'reg:squarederror',
+                 eval_metric = 'rmse',
+                 max_depth = 3,
+                 min_child_weight = 1,
+                 gamma = 0.10,
+                 subsample = 1,
+                 colsample_bytree = 0.9)
+# Final Prediction for This One
+xgb15_preds <- predict(xgb15, dtest_xgb_epa_move_sa)
+t20 <- accuracy(xgb15_preds, test_data_xgb$expectedPointsAdded)
+t20
+# SHAP
+shap_result <- shap.score.rank(xgb_model = xgb15,
+                               X_train = as.matrix(train_data_xgb[, c(2:3, 6:97)]),
+                               shap_approx = F)
+shap_long <- shap.prep(shap = shap_result,
+                       X_train = as.matrix(train_data_xgb[, c(2:3, 6:97)]),
+                       top_n = 10)
+shap_epa_move_sa <- plot.shap.summary(data_long = shap_long)
+ggsave(shap_epa_move_sa, file = "G:/My Drive/MSBA/Sem1/ML/Final Project/nfl-play-predictor/shap_epa_move_sa.jpeg", dpi = 600)
