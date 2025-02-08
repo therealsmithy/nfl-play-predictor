@@ -58,7 +58,7 @@ like this: <br>
 <br> The tracking dataset was used to create the motion
 variable. This variable tracks the distance between where the player was
 when the line gets set and where they are when the ball is snapped.
-Distance was calculated as Euclidian distance, which is found using the
+Distance was calculated as [Euclidian Distance](https://www.geeksforgeeks.org/euclidean-distance/), which is found using the
 Pythagoras theorem. Since a player’s position is collected as x and y
 pairs, this measure of distance calculates the length of the line that
 connects the initial pair and the second pair. This variable will be
