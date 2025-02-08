@@ -52,7 +52,7 @@ problem. Finally, there is week-by-week tracking data that will be used
 for speed and acceleration of each player on a frame by frame basis. This
 data will be used to create some derived variables, as well as for visualizations 
 like this: <br>
-<img src="https://github.com/therealsmithy/nfl-play-predictor/blob/main/visualizations/top_EPA.gif" width="100%" />
+<img src="https://github.com/therealsmithy/nfl-play-predictor/blob/main/visualizations/top_EPA.gif" width="50%" height="50%" />
 
 <br> The tracking dataset was used to create the motion
 variable. This variable tracks the distance between where the player was
