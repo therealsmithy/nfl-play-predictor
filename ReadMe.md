@@ -49,10 +49,11 @@ dataset has details about what every individual player on the field is
 doing during a certain play. This data and the motion variables
 inMotionAtBallSnap and motionSinceLineset are keys to deciphering my
 problem. Finally, there is week-by-week tracking data that will be used
-for visualization to aid my findings. It can be used to animate plays to
-better understand how motion can key a defense in on what the offense
-plans to do. This dataset also tracks the speed and acceleration of each
-player at a frame by frame basis. That data will be used in my model as well.
+for speed and acceleration of each player on a frame by frame basis. This
+data will be used to create some derived variables, as well as for visualizations 
+like this: <br>
+<gif src="https://github.com/therealsmithy/nfl-play-predictor/blob/main/visualizations/top_EPA.gif" width="100%" />
+
 <br> The tracking dataset was used to create the motion
 variable. This variable tracks the distance between where the player was
 when the line gets set and where they are when the ball is snapped.
