@@ -58,7 +58,7 @@ like this: <br>
 <br> The tracking dataset was used to create the motion
 variable. This variable tracks the distance between where the player was
 when the line gets set and where they are when the ball is snapped.
-Distance was calculated as [Euclidian Distance](https://www.geeksforgeeks.org/euclidean-distance/), which is found using the
+Distance was calculated as Euclidian distance, which is found using the
 Pythagoras theorem. Since a player’s position is collected as x and y
 pairs, this measure of distance calculates the length of the line that
 connects the initial pair and the second pair. This variable will be
@@ -67,7 +67,7 @@ determine what kinds of movement contribute to larger plays.
 
 ## Methods
 
-To improve predictive performance, the Random Forest model was used.
+For solid predictive performance, the [Random Forest](https://www.geeksforgeeks.org/random-forest-algorithm-in-machine-learning/) model was used.
 Each time, the first model that ran was a bagging model. The bagging
 model improves the performance of the single decision tree while giving
 me a baseline to tune off. Random Forest models are useful because they
@@ -75,14 +75,14 @@ are not prone to overfitting and block out noise well. They are less
 interpretable than the basic tree, but this trade-off was worth it for
 this project. These were the hardest models for the computer to run,
 however, as they are computationally intensive. <br> The final model ran
-in every scenario was XGBoost. XGBoost models may take a little more
+in every scenario was [XGBoost](https://xgboost.readthedocs.io/en/stable/). XGBoost models may take a little more
 preparation to get up and running, but they were the right choice for
 the questions being asked. These models are known for their high
 predictive performance, and they lived up to that during this project.
 While using Machine Learning techniques, the importance of interpretable
 results cannot be understated. The results of my models would mean
 nothing if they did not have this interpretability as well as someone
-that knew how to interpret them. XGBoost models use Shapley values to
+that knew how to interpret them. XGBoost models use [Shapley values](https://shap.readthedocs.io/en/latest/) to
 show the average marginal contribution of a feature value across all
 possible coalitions. The higher a Shapley value is, the more significant
 of an impact the feature has on the model’s prediction.
