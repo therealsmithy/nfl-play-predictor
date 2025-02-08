@@ -126,16 +126,28 @@ code. <br> First, for the Run vs. Pass:
 - Shotgun and Empty sets heavily influence the play call being a pass.
   This is due to the Running Back not being able to gain momentum with
   the football before coming in contact with a defender.
+<p align="center">
+  <img src="https://github.com/therealsmithy/nfl-play-predictor/blob/main/visualizations/top_shotgun.gif" width="60%" height="60%" />
+</p>
 
 - High values of WR1 and WR2 acceleration are  good indicators that a run play
   is about to happen. This can be due in part to the End Around play, where 
-  the WR comes in motion and takes the ball from the QB like a RB would. 
+  the WR comes in motion and takes the ball from the QB like a RB would. This acceleartion
+  can also be a misdirection, where the WR is moving to confuse the defense as to
+  where the ball is going.
+<p align="center">
+  <img src="https://github.com/therealsmithy/nfl-play-predictor/blob/main/visualizations/top_accel.gif " width="60%" height="60%" />
+</p>
 
 - High G1 and G2 acceleration are also good indicators that a run play is 
   about to occur. While a Guard can not be in motion when the ball is snapped,
   it is possible that the data was off by a few frames. In situations where
   G acceleration is high, it may be due to a Guard being a lead blocker and pulling
   to stay in front of the ballcarrier.
+<p align="center">
+  <img src="https://github.com/therealsmithy/nfl-play-predictor/blob/main/visualizations/top_G1_accel.gif" width="60%" height="60%" />
+</p>
+  
   <br> Next, for EPA:
   <img src="https://github.com/therealsmithy/nfl-play-predictor/blob/main/visualizations/shap_epa_move_sa.jpeg" width="100%" />
 
@@ -143,17 +155,26 @@ code. <br> First, for the Run vs. Pass:
   One of the reasons for this is Detroit Lions OT Dan Skipper reports
   as eligible in some situations, and not all of these plays work out.
   Since he is eligible, he does not need to stand firm and is able to move.
+<p align="center">
+  <img src="https://github.com/therealsmithy/nfl-play-predictor/blob/main/visualizations/top_T2_speed.gif" width="60%" height="60%" />
+</p>  
 
 - WR3 movement can be a mixed bag. 3 receivers on the field is a sign
   that the offense may be looking to throw the ball, and when that third
   receiver gets into motion it is hit or miss. Look for the offense to 
   try to make a big play when that third WR moves significantly before the
   snap.
+<p align="center">
+  <img src="https://github.com/therealsmithy/nfl-play-predictor/blob/main/visualizations/top_WR3_movement.gif" width="60%" height="60%" />
+</p>
 
 - The highest value of RB movement impacted EPA negatively, but the trend 
   points to RB movement being a good thing for EPA. This is probably due to 
   the RB motioning from the backfield to the line of scrimmage. When this 
   happens, the offense is likely to try to make a big play throwing the ball.
+<p align="center">
+  <img src="https://github.com/therealsmithy/nfl-play-predictor/blob/main/visualizations/top_RB1_movement.gif" width="60%" height="60%" />
+</p>
 
 ## Conculsion and Future Work
 
